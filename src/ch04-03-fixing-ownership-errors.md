@@ -79,7 +79,7 @@ This program is rejected by the borrow checker because `name` is an immutable re
 
 ```aquascope,interpreter,shouldFail,horizontal
 #fn stringify_name_with_title(name: &Vec<String>) -> String {
-#    name.push(String::from("Esq."));`{}`
+#    name.push(String::from("Esq."));
 #    let full = name.join(" ");
 #    full
 #}
@@ -317,7 +317,7 @@ assert!(v.len() == 0);
 
 ### Fixing a Safe Program: Mutating Different Tuple Fields
 
-The above examples are cases where a program is unsafe. Rust may also reject safe programs. One common issue is that Rust tries to track permissions at a fine-grained level. However, Rust may conflate two different paths as the same path. 
+The above examples are cases where a program is unsafe. Rust may also reject safe programs. One common issue is that Rust tries to track permissions at a fine-grained level. However, Rust may conflate two different places as the same place. 
  
 Let's first look at an example of fine-grained permission tracking that passes the borrow checker. This program shows how you can borrow one field of a tuple, and write to a different field of the same tuple:
 
@@ -335,7 +335,7 @@ println!("{first} {}", name.1);
 
 The statement `let first = &name.0` borrows `name.0`. This borrow removes @Perm{write}@Perm{own} permissions from `name.0`. It also removes @Perm{write}@Perm{own} permissions from `name`. (For example, one could not pass `name` to a function that takes as input a value of type `(String, String)`.) But `name.1` still retains the @Perm{write} permission, so doing `name.1.push_str(...)` is a valid operation.
 
-However, Rust can lose track of exactly which paths are borrowed. For example, let's say we refactor the expression `&name.0` into a function `get_first`. Notice how after calling `get_first(&name)`, Rust now removes the @Perm{write} permission on `name.1`:
+However, Rust can lose track of exactly which places are borrowed. For example, let's say we refactor the expression `&name.0` into a function `get_first`. Notice how after calling `get_first(&name)`, Rust now removes the @Perm{write} permission on `name.1`:
 
 ```aquascope,permissions,stepper,boundaries,shouldFail
 fn get_first(name: &(String, String)) -> &String {
@@ -375,7 +375,7 @@ Remember, the key idea is that **the program above is safe.** It has no undefine
 
 ### Fixing a Safe Program: Mutating Different Array Elements
 
-A similar kind of problem arises when we borrow elements of an array. For example, observe what paths are borrowed when we take a mutable reference to an array:
+A similar kind of problem arises when we borrow elements of an array. For example, observe what places are borrowed when we take a mutable reference to an array:
 
 ```aquascope,permissions,stepper,boundaries
 #fn main() {
@@ -386,7 +386,7 @@ println!("{a:?}");
 #}
 ```
 
-Rust's borrow checker does not contain different paths for `a[0]`, `a[1]`, and so on. It uses a single path `a[_]` that represents *all* indexes of `a`. Rust does this because it cannot always determine the value of an index. For example, imagine a more complex scenario like this:
+Rust's borrow checker does not contain different places for `a[0]`, `a[1]`, and so on. It uses a single place `a[_]` that represents *all* indexes of `a`. Rust does this because it cannot always determine the value of an index. For example, imagine a more complex scenario like this:
 
 ```rust,ignore
 let idx = a_complex_function();
@@ -444,7 +444,7 @@ unsafe { *x += *y; } // DO NOT DO THIS unless you know what you're doing!
 #}
 ```
 
-Unsafe code is sometimes necessary to work around the limitations of the borrow checker. As a general strategy, let's say the borrow checker rejects a program you think is actually safe. Then you should look for standard library functions (like `split_at_mut`) that contain `unsafe` blocks which solve your problem. We will discuss unsafe code further in [Chapter 19][unsafe]. For now, just be aware that unsafe code is how Rust implements certain otherwise-impossible patterns.
+Unsafe code is sometimes necessary to work around the limitations of the borrow checker. As a general strategy, let's say the borrow checker rejects a program you think is actually safe. Then you should look for standard library functions (like `split_at_mut`) that contain `unsafe` blocks which solve your problem. We will discuss unsafe code further in [Chapter 20][unsafe]. For now, just be aware that unsafe code is how Rust implements certain otherwise-impossible patterns.
 
 {{#quiz ../quizzes/ch04-03-fixing-ownership-errors-sec2-safety.toml}}
 
